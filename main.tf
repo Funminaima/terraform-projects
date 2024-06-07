@@ -7,6 +7,7 @@ variable env_prefix{}
 variable myip{}
 variable ec2_instance_type{}
 variable public_key{}
+variable private_key{}
 
 resource "aws_vpc" "myapp-vpc"{
     cidr_block = var.vpc_cidr_block
@@ -139,7 +140,28 @@ resource "aws_instance" "myapp-ec2"{
     associate_public_ip_address = true 
     key_name = aws_key_pair.terraform-key-pair.key_name
 
-  user_data = file("entry-script.sh")
+  #user_data = file("entry-script.sh")
+
+  #we need to first make a connection or ssh into the created ec2
+  connection {
+    host = self.public_ip
+    type = "ssh"
+    user= "ec2-user"
+    private_key= var.private_key
+  }
+
+  #before we can run a script directly, we need to have the file on the server first, 
+  #so lets copy the file first from the local sorce to the ec2
+  provisioner "file" {
+    source = "entry-script.sh" #localsource 
+    destination = "home/ec2-user/entry-script.sh"
+    
+  }
+
+  #this is to run script in the server by terraform itself
+  provisioner "remote-exec" {
+    script = file("entry-script.sh")
+  }
 
     tags={
          Name:"${var.env_prefix}-terraformEc2"
