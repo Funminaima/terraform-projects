@@ -84,6 +84,7 @@ resource "aws_security_group" "app-sg"{
         protocol = "tcp"
     }
 
+#outbound
     egress {
 
         from_port =0
@@ -124,7 +125,7 @@ output "aws_instance_public_ip"{
 #create key pair for ec2
 resource "aws_key_pair" "terraform-key-pair"{
     key_name = "terraform_key_pair"
-    public_key = var.public_key
+    public_key = file(var.public_key)
 }
 
 resource "aws_instance" "myapp-ec2"{
